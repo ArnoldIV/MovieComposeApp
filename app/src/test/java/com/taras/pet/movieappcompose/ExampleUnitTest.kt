@@ -591,7 +591,6 @@ class MoviesViewModelTest {
             differ.submitData(mockLazyPagingItems)
             val list = differ.snapshot().items
 
-
             // Act
             advanceUntilIdle() // чекаємо завершення всіх collect
 
@@ -601,7 +600,5 @@ class MoviesViewModelTest {
             Assertions.assertEquals("Test2",list[1].overview)
             Assertions.assertEquals(2,list.size)
             //assert(emittedMessages.contains("Інтернет відновлено"))
-
         }
-
 }
