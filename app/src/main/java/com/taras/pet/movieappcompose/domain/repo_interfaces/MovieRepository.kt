@@ -10,6 +10,8 @@ interface  MovieRepository {
     suspend fun getMovieDetails(id: Int): Movie
 
     fun getFavorites(): Flow<List<Movie>>
+    fun getPopularMovies(): Flow<List<Movie>>
     suspend fun addToFavorites(movie: Movie)
+    suspend fun updatePopularMovies()
     suspend fun removeFromFavorites(movie: Movie)
 }

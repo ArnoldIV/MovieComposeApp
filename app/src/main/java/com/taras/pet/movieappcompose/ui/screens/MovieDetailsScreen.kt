@@ -18,9 +18,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,13 +36,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.wear.compose.material3.Button
-import androidx.wear.compose.material3.CircularProgressIndicator
-import androidx.wear.compose.material3.Icon
-import androidx.wear.compose.material3.IconButton
-import androidx.wear.compose.material3.MaterialTheme
-import androidx.wear.compose.material3.Text
 import com.taras.pet.movieappcompose.domain.model.Movie
+import com.taras.pet.movieappcompose.ui.components.PosterImage
 import com.taras.pet.movieappcompose.ui.ui_states.MovieDetailsUiState
 import com.taras.pet.movieappcompose.ui.view_models.MovieDetailsViewModel
 
@@ -55,8 +55,6 @@ fun MovieDetailsScreen(
         onBack()
     }
 
-    val isConnected by viewModel.isConnected.collectAsState()
-
     LaunchedEffect(movieId) {
         viewModel.loadMovieDetails(movieId)
     }
@@ -67,7 +65,7 @@ fun MovieDetailsScreen(
         onToggleFavorite = {
             viewModel.toggleFavorite()
         },
-        onRetry = { viewModel.loadMovieDetails(movieId)}
+        onRetry = { viewModel.loadMovieDetails(movieId) }
     )
     val context = LocalContext.current
     LaunchedEffect(Unit) {
@@ -95,7 +93,7 @@ fun OfflineScreen2(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            androidx.compose.material3.Icon(
+            Icon(
                 imageVector = Icons.Default.WifiOff,
                 contentDescription = "No Internet",
                 tint = MaterialTheme.colorScheme.primary,
@@ -204,7 +202,7 @@ fun MovieDetailsContent(
                 Spacer(Modifier.height(20.dp))
                 Button(
                     onClick = {
-                      //  onBack()
+                        //  onBack()
                         onToggleFavorite()
                     },
                     modifier = Modifier
@@ -241,7 +239,7 @@ fun MovieDetailsPreview() {
         onBack = {},
         onToggleFavorite = {},
         onRetry = {
-            
+
         }
     )
 }

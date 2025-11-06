@@ -1,4 +1,4 @@
-package com.taras.pet.movieappcompose.domain.di
+package com.taras.pet.movieappcompose.data.di
 
 import android.content.Context
 import com.squareup.moshi.Moshi

@@ -12,7 +12,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,6 +26,9 @@ class MoviesViewModel @Inject constructor(
 
     val pagedMovies = repo.getPagedMovies()
         .cachedIn(viewModelScope)
+
+    val offlineMovies = repo.getPopularMovies()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     private val _isConnected = MutableStateFlow(true)
     val isConnected: StateFlow<Boolean> = _isConnected

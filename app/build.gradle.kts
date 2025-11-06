@@ -26,6 +26,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -45,6 +46,11 @@ android {
 }
 
 dependencies {
+
+    implementation("androidx.work:work-runtime-ktx:2.11.0")
+    implementation("androidx.hilt:hilt-work:1.3.0")
+    ksp ("androidx.hilt:hilt-compiler:1.3.0")
+
     implementation("com.google.accompanist:accompanist-swiperefresh:0.36.0")
 
     implementation("io.coil-kt.coil3:coil-compose:3.3.0")
@@ -71,6 +77,7 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:5.1.0")
     implementation("com.squareup.moshi:moshi-kotlin:1.15.2")
     implementation(libs.compose.material3)
+    implementation(libs.androidx.hilt.work)
     ksp("com.squareup.moshi:moshi-kotlin-codegen:1.15.2")
 
     implementation("androidx.room:room-runtime:2.8.0")
@@ -102,6 +109,8 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
 
+    androidTestImplementation("androidx.navigation:navigation-testing:2.7.7")
+
     testImplementation(kotlin("test-junit5"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.13.4")
 
@@ -114,6 +123,8 @@ dependencies {
 
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    debugImplementation ("com.squareup.leakcanary:leakcanary-android:2.14")
+
 }
 //tasks.withType<Test> {
 //    useJUnitPlatform()

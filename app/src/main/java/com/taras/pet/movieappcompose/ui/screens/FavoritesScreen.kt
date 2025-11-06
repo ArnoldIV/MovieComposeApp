@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -23,9 +25,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.wear.compose.material3.CircularProgressIndicator
-import androidx.wear.compose.material3.Text
 import com.taras.pet.movieappcompose.domain.model.Movie
+import com.taras.pet.movieappcompose.ui.components.PosterImage
 import com.taras.pet.movieappcompose.ui.ui_states.FavoritesUiState
 import com.taras.pet.movieappcompose.ui.view_models.FavoritesViewModel
 
@@ -46,13 +47,16 @@ fun FavoritesContent(
     BackHandler {
         false
     }
+
     when (state) {
         is FavoritesUiState.Loading -> Box(Modifier.fillMaxSize(), Alignment.Center) {
             CircularProgressIndicator()
         }
+
         is FavoritesUiState.Empty -> Box(Modifier.fillMaxSize(), Alignment.Center) {
             Text("У вас ще немає улюблених фільмів")
         }
+
         is FavoritesUiState.Success -> LazyColumn {
             items(state.movies, key = { it.id }) { movie ->
                 FavoriteMovieItem(movie, onClick = { onMovieClick(movie.id) })
@@ -82,7 +86,7 @@ fun FavoriteMovieItem(
                 text = movie.title,
                 style = MaterialTheme.typography.titleMedium
             )
-          Text(
+            Text(
                 text = movie.overview,
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 3,
@@ -114,7 +118,16 @@ fun FavoritesPreview() {
             releaseDate = "2010",
             genres = listOf("Sci-Fi")
         ),
-        Movie(id = 2, title = "The Matrix", overview = "Neo discovers reality...", posterUrl = null, backdropUrl = null, rating = 9.0, releaseDate = "1999", genres = listOf("Action", "Sci-Fi"))
+        Movie(
+            id = 2,
+            title = "The Matrix",
+            overview = "Neo discovers reality...",
+            posterUrl = null,
+            backdropUrl = null,
+            rating = 9.0,
+            releaseDate = "1999",
+            genres = listOf("Action", "Sci-Fi")
+        )
     )
     FavoritesContent(
         state = FavoritesUiState.Success(fakeMovies),

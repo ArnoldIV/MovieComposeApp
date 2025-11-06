@@ -1,7 +1,7 @@
 package com.taras.pet.movieappcompose.ui.screens
 
+import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.Button
@@ -30,7 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,14 +39,11 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
-import coil3.request.crossfade
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import com.taras.pet.movieappcompose.R
 import com.taras.pet.movieappcompose.data.remote.ConnectivityEvent
 import com.taras.pet.movieappcompose.domain.model.Movie
+import com.taras.pet.movieappcompose.ui.components.PosterImage
 import com.taras.pet.movieappcompose.ui.theme.MovieAppComposeTheme
 import com.taras.pet.movieappcompose.ui.view_models.MoviesViewModel
 import kotlinx.coroutines.delay
@@ -56,7 +53,7 @@ fun MoviesScreen(
     viewModel: MoviesViewModel = hiltViewModel(),
     onMovieClick: (Int) -> Unit,
 ) {
-
+    val offlineMovies by viewModel.offlineMovies.collectAsState()
     val movies = viewModel.pagedMovies.collectAsLazyPagingItems()
     val isConnected by viewModel.isConnected.collectAsState()
 
@@ -73,6 +70,7 @@ fun MoviesScreen(
             }
 
             is LoadState.Error -> {
+                Log.d("MoviesScreen", "error")
                 loadError = true
             }
 
@@ -85,14 +83,30 @@ fun MoviesScreen(
         }
     }
 
-    if (isConnected) {
-        SwipeRefresh(
-            state = rememberSwipeRefreshState(isRefreshing = showRefreshing),
-            onRefresh = { movies.refresh() }) {
+    when {
+        isConnected -> {
+            SwipeRefresh(
+                state = rememberSwipeRefreshState(isRefreshing = showRefreshing),
+                onRefresh = { movies.refresh() }) {
+                MoviesList(movies = movies, onMovieClick = onMovieClick
+                )
+            }
+        }
+
+        offlineMovies.isNotEmpty() -> {
+            LazyColumn {
+                items(offlineMovies, key = { it.id }) { movie ->
+                    MovieItem(movie, onClick = {
+                        Log.d("OfflineMovieItem", "offline movie clicked ${movie.id}")
+                        onMovieClick(movie.id)
+                    })
+                }
+            }
+          //  OfflineMovieItem(offlineMovies, onMovieClick = onMovieClick)
+        }
+        else -> {
             MoviesList(movies = movies, onMovieClick = onMovieClick)
         }
-    } else {
-        MoviesList(movies = movies, onMovieClick = onMovieClick)
     }
 
 
@@ -112,16 +126,6 @@ fun MoviesScreen(
             onRetry = { viewModel.retry(movies) }
         )
     }
-//    AnimatedContent(targetState = isConnected, label = "connectionState") { connected ->
-//        if (!connected) {
-//            // 🔹 Екран "немає інтернету"
-//        OfflineScreen(
-//            onRetry = { viewModel.retry(movies) }
-//        )
-//        } else {
-//            viewModel.retry(movies)
-//        }
-//    }
 }
 
 @Composable
@@ -219,7 +223,10 @@ fun MoviesList(
             val movie = movies[index]
             if (movie != null) {
                 MovieItem(
-                    movie = movie, onClick = { onMovieClick(movie.id) })
+                    movie = movie, onClick = {
+                        Log.d("OfflineMovieItem", " movie clicked ${movie.id}")
+                        onMovieClick(movie.id) }
+                )
             }
         }
 
@@ -266,29 +273,6 @@ fun MoviesList(
     }
 }
 
-@Composable
-fun PosterImage(
-    url: String?,
-    modifier: Modifier = Modifier,
-    placeholder: Int = R.drawable.baseline_download_24,
-    error: Int = R.drawable.empty_poster_placeholder
-) {
-    if (url.isNullOrEmpty()) {
-        Image(
-            painter = painterResource(id = error),
-            contentDescription = "Poster placeholder",
-            modifier = modifier
-        )
-    } else {
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current).data(url).crossfade(true).build(),
-            contentDescription = null,
-            placeholder = painterResource(id = placeholder),
-            error = painterResource(id = error),
-            modifier = modifier
-        )
-    }
-}
 
 @Preview(showBackground = true)
 @Composable

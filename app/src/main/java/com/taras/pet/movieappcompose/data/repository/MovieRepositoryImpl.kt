@@ -1,10 +1,12 @@
 package com.taras.pet.movieappcompose.data.repository
 
+import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import com.taras.pet.movieappcompose.data.local.FavoriteMovieDao
+import com.taras.pet.movieappcompose.data.local.dao.FavoriteMovieDao
 import com.taras.pet.movieappcompose.data.local.FavoriteMovieEntity
+import com.taras.pet.movieappcompose.data.local.dao.PopularMoviesDao
 import com.taras.pet.movieappcompose.data.mapper.MovieDtoMapper
 import com.taras.pet.movieappcompose.data.remote.MovieApi
 import com.taras.pet.movieappcompose.data.remote.MoviePagingSource
@@ -13,16 +15,25 @@ import com.taras.pet.movieappcompose.domain.repo_interfaces.MovieRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
+import kotlin.collections.map
 
 class MovieRepositoryImpl @Inject constructor(
     private val api: MovieApi,
     private val mapper: MovieDtoMapper,
-    private val favoriteDao: FavoriteMovieDao
+    private val favoriteDao: FavoriteMovieDao,
+    private val popularMoviesDao: PopularMoviesDao
 ) : MovieRepository {
 
     override suspend fun getMovies(page: Int): List<Movie> {
         val response = api.getMovies(page)
         return mapper.mapList(response.results)
+    }
+
+    override suspend fun updatePopularMovies() {
+        popularMoviesDao.clearPopularMovies()
+        val entities = mapper.mapPopularList(api.getMovies(1).results)
+        Log.d("MovieRepositoryImpl", "entities: $entities")
+        popularMoviesDao.insertAllPopularMovies(entities)
     }
 
     override fun getPagedMovies(): Flow<PagingData<Movie>> {
@@ -84,6 +95,22 @@ class MovieRepositoryImpl @Inject constructor(
                 )
             }
         }
+
+    override fun getPopularMovies(): Flow<List<Movie>> =
+    popularMoviesDao.getAllPopularMovies().map { entities ->
+        entities.map { entity ->
+            Movie(
+                id = entity.id,
+                title = entity.title,
+                overview = entity.overview,
+                posterUrl = entity.posterUrl,
+                backdropUrl = entity.backdropUrl,
+                rating = entity.rating,
+                releaseDate = entity.releaseDate ?: "Planing",
+                genres = entity.genres
+            )
+        }
+    }
 
     override suspend fun addToFavorites(movie: Movie) {
         val entity = FavoriteMovieEntity(
