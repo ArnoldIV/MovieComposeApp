@@ -1,7 +1,7 @@
-package com.taras.pet.movieappcompose.domain.di
+package com.taras.pet.movieappcompose.data.di
 
-import com.taras.pet.movieappcompose.domain.repo_interfaces.MovieRepository
 import com.taras.pet.movieappcompose.data.repository.MovieRepositoryImpl
+import com.taras.pet.movieappcompose.domain.repo_interfaces.MovieRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

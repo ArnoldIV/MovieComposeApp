@@ -1,7 +1,7 @@
 package com.taras.pet.movieappcompose
 
-import com.taras.pet.movieappcompose.data.local.FavoriteMovieDao
-import com.taras.pet.movieappcompose.data.local.FavoriteMovieEntity
+import com.taras.pet.movieappcompose.data.local.room.dao.FavoriteMovieDao
+import com.taras.pet.movieappcompose.data.local.room.FavoriteMovieEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 

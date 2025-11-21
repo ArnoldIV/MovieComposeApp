@@ -1,4 +1,4 @@
-package com.taras.pet.movieappcompose.data.local
+package com.taras.pet.movieappcompose.data.local.room
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

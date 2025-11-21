@@ -2,18 +2,22 @@ package com.taras.pet.movieappcompose.ui.view_models
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.LoadState
 import androidx.paging.cachedIn
 import androidx.paging.compose.LazyPagingItems
 import com.taras.pet.movieappcompose.data.remote.ConnectivityEvent
 import com.taras.pet.movieappcompose.data.remote.NetworkChecker
 import com.taras.pet.movieappcompose.domain.model.Movie
 import com.taras.pet.movieappcompose.domain.repo_interfaces.MovieRepository
+import com.taras.pet.movieappcompose.ui.ui_states.MoviesUiState
+import com.taras.pet.movieappcompose.util.CrashLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -21,7 +25,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MoviesViewModel @Inject constructor(
     repo: MovieRepository,
-    private val networkChecker: NetworkChecker
+    private val networkChecker: NetworkChecker,
+    private val crashLogger: CrashLogger,
 ) : ViewModel() {
 
     val pagedMovies = repo.getPagedMovies()
@@ -29,6 +34,9 @@ class MoviesViewModel @Inject constructor(
 
     val offlineMovies = repo.getPopularMovies()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    private val _uiState = MutableStateFlow<MoviesUiState>(MoviesUiState.Loading)
+    val uiState: StateFlow<MoviesUiState> = _uiState
 
     private val _isConnected = MutableStateFlow(true)
     val isConnected: StateFlow<Boolean> = _isConnected
@@ -38,6 +46,16 @@ class MoviesViewModel @Inject constructor(
 
     init {
         observeConnection()
+        observePaging()
+    }
+
+    private fun observePaging() {
+        viewModelScope.launch {
+            pagedMovies.collectLatest { pagingData ->
+                // pagingData itself does not give a snapshot until it is rendered,
+                // so the UI will respond to loadState
+            }
+        }
     }
 
     private fun observeConnection() {
@@ -46,95 +64,44 @@ class MoviesViewModel @Inject constructor(
                 _isConnected.value = connected
 
                 if (!connected) {
-                    _connectivityChangeEvent.emit(ConnectivityEvent.ShowToast("Інтернет зник"))
+                    _connectivityChangeEvent.emit(ConnectivityEvent.ShowToast("Lost connection"))
                 } else {
-                    _connectivityChangeEvent.emit(ConnectivityEvent.ShowToast("Інтернет відновлено"))
+                    _connectivityChangeEvent.emit(ConnectivityEvent.ShowToast("Connection restored"))
                 }
             }
         }
     }
 
-    /** Викликається при натисканні на кнопку "Спробувати знову" */
+    fun onLoadStateChanged(state: LoadState) {
+        when (state) {
+            is LoadState.Loading -> {
+                _uiState.value = MoviesUiState.Loading
+            }
+
+            is LoadState.NotLoading -> {
+                _uiState.value = MoviesUiState.Success(
+                    movies = offlineMovies.value, //or snapshot of the submitted data
+                    isRefreshing = false
+                )
+            }
+
+            is LoadState.Error -> {
+                logCrash("LoadState error: ${state.error.message}")
+                _uiState.value = MoviesUiState.Error(
+                    message = state.error.message ?: "Unknown error",
+                    cachedMovies = offlineMovies.value
+                )
+            }
+        }
+    }
+
     fun retry(movies: LazyPagingItems<Movie>) {
         if (_isConnected.value) {
             movies.retry()
         }
     }
 
-//    private val _state = MutableStateFlow<MoviesUiState>(MoviesUiState.Loading)
-//    val state: StateFlow<MoviesUiState> = _state
-//
-//    private val _connectivityChangeEvent = MutableSharedFlow<ConnectivityEvent>()
-//    val connectivityChangeEvent: SharedFlow<ConnectivityEvent> = _connectivityChangeEvent
-//
-//
-//    private var currentPage = 1
-//    private var allMovies = mutableListOf<Movie>()
-//    private var isLoadingMore = false
-//
-//    init {
-//        loadMovies()
-//    }
-//
-//    fun loadMovies() {
-//        viewModelScope.launch {
-//            networkChecker.isConnected.collect { connected ->
-//                if (!connected) {
-//                    // показати офлайн, якщо даних немає
-//                    if (!connected && _state.value is MoviesUiState.Success) {
-//                        _connectivityChangeEvent.emit(ConnectivityEvent.ShowToast("Інтернет пропав"))
-//                    }
-//
-//                    if (_state.value !is MoviesUiState.Success) {
-//                        val cached = repo.getFavorites().firstOrNull().orEmpty()
-//                        if (cached.isNotEmpty()) {
-//                            _state.value = MoviesUiState.Offline(cached)
-//                        } else {
-//                            _state.value = MoviesUiState.Error("Немає інтернету")
-//                        }
-//                    }
-//                } else {
-//                    try {
-//                        val movies = repo.getMovies(currentPage)
-//                        _state.value = MoviesUiState.Success(movies)
-//                    } catch (e: Exception) {
-//                        _state.value = MoviesUiState.Error(e.message ?: "Помилка61")
-//                    }
-//                }
-//            }
-//        }
-//    }
-//
-//    fun refresh(){
-//        viewModelScope.launch {
-//            val currentMovies = (_state.value as? MoviesUiState.Success)?.movies.orEmpty()
-//            _state.value = MoviesUiState.Success(currentMovies, isRefreshing = true)
-//
-//            try {
-//                val movies = repo.getMovies(currentPage)
-//                _state.value = MoviesUiState.Success(movies, isRefreshing = false)
-//            } catch (e: Exception) {
-//                _state.value = MoviesUiState.Error(e.message ?: "Помилка оновлення")
-//            }
-//        }
-//    }
-//
-//
-//    fun loadNextPage() {
-//        if (isLoadingMore) return
-//        isLoadingMore = true
-//        currentPage++
-//        viewModelScope.launch {
-//            try {
-//                val movies = repo.getMovies(currentPage)
-//                allMovies.addAll(movies)
-//                _state.value = MoviesUiState.Success(allMovies.toList())
-//            } catch (e: Exception) {
-//                _state.value = MoviesUiState.Error("Помилка підвантаження: ${e.message}")
-//            } finally {
-//                isLoadingMore = false
-//            }
-//        }
-//    }
-
+    fun logCrash(message: String) {
+        crashLogger.log(message)
+    }
 }

@@ -4,9 +4,9 @@ import android.content.Context
 import androidx.room.Room
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.taras.pet.movieappcompose.data.local.AppDatabase
-import com.taras.pet.movieappcompose.data.local.dao.FavoriteMovieDao
-import com.taras.pet.movieappcompose.data.local.dao.PopularMoviesDao
+import com.taras.pet.movieappcompose.data.local.room.AppDatabase
+import com.taras.pet.movieappcompose.data.local.room.dao.FavoriteMovieDao
+import com.taras.pet.movieappcompose.data.local.room.dao.PopularMoviesDao
 
 
 import dagger.Module

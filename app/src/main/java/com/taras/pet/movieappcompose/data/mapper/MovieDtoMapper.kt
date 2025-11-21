@@ -1,6 +1,6 @@
 package com.taras.pet.movieappcompose.data.mapper
 
-import com.taras.pet.movieappcompose.data.local.PopularMovieEntity
+import com.taras.pet.movieappcompose.data.local.room.PopularMovieEntity
 import com.taras.pet.movieappcompose.data.remote.dto.MovieDto
 import com.taras.pet.movieappcompose.domain.model.Movie
 import javax.inject.Inject

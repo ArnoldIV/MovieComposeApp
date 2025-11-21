@@ -37,11 +37,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.google.firebase.FirebaseApp
 import com.taras.pet.movieappcompose.ui.screens.FavoritesScreen
 import com.taras.pet.movieappcompose.ui.screens.MovieDetailsScreen
 import com.taras.pet.movieappcompose.ui.screens.MoviesScreen
-import com.taras.pet.movieappcompose.ui.screens.NoInternetScreen
-import com.taras.pet.movieappcompose.ui.theme.MovieAppComposeTheme
+import com.taras.pet.movieappcompose.ui.theme.AppTheme
 import com.taras.pet.movieappcompose.ui.view_models.MovieDetailsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -50,11 +50,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        FirebaseApp.initializeApp(this)
         setContent {
-            MovieAppComposeTheme {
+            AppTheme {
                 MovieApp()
             }
         }
+        //for testing purpose
+//        FirebaseCrashlytics.getInstance().log("Test crash before exception")
+//        throw RuntimeException("Test Crash")
     }
 }
 
@@ -101,8 +105,6 @@ fun MovieApp() {
                             contentDescription = "more actions icon"
                         )
                     }
-                    //  DropdownMenu() { }
-                    //DropdownMenuItem()
                 }
             )
         },
@@ -112,7 +114,7 @@ fun MovieApp() {
                     NavigationBarItem(
                         selected = currentRoute == "movies",
                         onClick = {
-                            if (currentRoute != "movies") { // 👈 уникає дублю
+                            if (currentRoute != "movies") { // 👈 avoids a double
                                 navController.navigate("movies") {
                                     popUpTo(navController.graph.findStartDestination().id) {
                                         saveState = true
@@ -129,7 +131,7 @@ fun MovieApp() {
                     NavigationBarItem(
                         selected = currentRoute == "favorites",
                         onClick = {
-                            if (currentRoute != "favorites") { // 👈 уникає дублю
+                            if (currentRoute != "favorites") { // 👈 avoids a double
                                 navController.navigate("favorites") {
                                     popUpTo(navController.graph.findStartDestination().id) {
                                         saveState = true
@@ -153,28 +155,30 @@ fun MovieApp() {
                 startDestination = "movies",
                 modifier = Modifier.padding(innerPadding)
             ) {
-                composable("movies") { MoviesScreen(
-                    onMovieClick = { movieId ->
-                    navController.navigate("details/$movieId") {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+                composable("movies") {
+                    MoviesScreen(
+                        onMovieClick = { movieId ->
+
+                            navController.navigate("details/$movieId") {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        })
+                }
+
+                composable("favorites") {
+                    FavoritesScreen(onMovieClick = { movieId ->
+                        navController.navigate("details/$movieId") {
+                            Log.d("Nav", "➡️ Navigate to details/$movieId")
+
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                }) }
-
-                composable("favorites") { FavoritesScreen(onMovieClick = { movieId ->
-                    navController.navigate("details/$movieId"){
-                        Log.d("Nav", "➡️ Navigate to details/$movieId")
-
-//                        popUpTo(navController.graph.findStartDestination().id) {
-//                            saveState = true
-//                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                }) }
+                    })
+                }
 
                 composable(
                     "details/{movieId}",
@@ -182,7 +186,7 @@ fun MovieApp() {
                 ) { backStackEntry ->
                     val movieId = backStackEntry.arguments!!.getInt("movieId")
 
-                    // Ключ на основі movieId → тепер кожен фільм матиме свою VM
+                    // Key based on movieId → now each movie will have its own VM
                     val viewModel: MovieDetailsViewModel = hiltViewModel(key = "details_$movieId")
 
                     MovieDetailsScreen(
@@ -190,10 +194,6 @@ fun MovieApp() {
                         viewModel = viewModel,
                         onBack = { navController.popBackStack() }
                     )
-                }
-
-                composable("no_internet") {
-                    NoInternetScreen(navController = navController)
                 }
             }
         },
@@ -203,7 +203,7 @@ fun MovieApp() {
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
-    MovieAppComposeTheme {
+    AppTheme {
         MovieApp()
     }
 }

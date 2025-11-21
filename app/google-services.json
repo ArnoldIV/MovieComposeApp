@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "839012088440",
+    "project_id": "movieappcompose-aff80",
+    "storage_bucket": "movieappcompose-aff80.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:839012088440:android:2aaeaab5fbccfafe208b8d",
+        "android_client_info": {
+          "package_name": "com.taras.pet.movieappcompose"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCDCzrZpo5PtRM1AK8N8L_REULM3Vcl-eg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,4 +1,4 @@
-package com.taras.pet.movieappcompose.ui.screens
+package com.taras.pet.movieappcompose.ui.screens.content
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,30 +14,24 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.navigation.NavController
-import com.taras.pet.movieappcompose.ui.view_models.MoviesViewModel
 
 @Composable
-fun NoInternetScreen(
-    navController: NavController,
-    viewModel: MoviesViewModel = hiltViewModel()
+fun OfflineScreen(
+    errorMessage:String,
+    onRetry: () -> Unit
 ) {
-    val isConnected by viewModel.isConnected.collectAsState()
-
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(32.dp),
-        contentAlignment = Alignment.Center
+            .padding(32.dp), contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Icon(
                 imageVector = Icons.Default.WifiOff,
                 contentDescription = "No Internet",
@@ -46,29 +40,18 @@ fun NoInternetScreen(
             )
             Spacer(Modifier.height(16.dp))
             Text(
-                text = "Немає підключення до Інтернету",
+                text = errorMessage,
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "Перевірте з’єднання та спробуйте ще раз",
+                text = "Check your connection and try again.",
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center
             )
             Spacer(Modifier.height(24.dp))
-            Button(
-                onClick = {
-                    if (isConnected) {
-                        // якщо інтернет є — повертаємось на список і оновлюємо дані
-                        navController.previousBackStackEntry
-                            ?.savedStateHandle
-                            ?.set("forceRefresh", true)
-                        navController.popBackStack()
-                    }
-                    // якщо інтернету немає — нічого не робимо
-                }
-            ) {
-                Text("Інтернет уже є")
+            Button(onClick = onRetry) {
+                Text("Try again")
             }
         }
     }

@@ -2,6 +2,8 @@ package com.taras.pet.movieappcompose.data.remote
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
+import com.google.firebase.Firebase
+import com.google.firebase.perf.performance
 import com.taras.pet.movieappcompose.data.mapper.MovieDtoMapper
 import com.taras.pet.movieappcompose.domain.model.Movie
 
@@ -11,8 +13,13 @@ class MoviePagingSource(
 ) : PagingSource<Int, Movie>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Movie> {
+        val page = params.key ?: 1
+
+        val trace = Firebase.performance.newTrace("paging_load_page_$page")
+        trace.start()
+
         return try {
-            val page = params.key ?: 1
+
             val response = api.getMovies(page)
             val movies = mapper.mapList(response.results)
 
@@ -23,6 +30,8 @@ class MoviePagingSource(
             )
         } catch (e: Exception) {
             LoadResult.Error(e)
+        } finally {
+            trace.stop()
         }
     }
 

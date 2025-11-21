@@ -10,13 +10,21 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.taras.pet.movieappcompose.data.local.secure.SecureDataStore
 import com.taras.pet.movieappcompose.data.worker.PopularMoviesWorker
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltAndroidApp
 class MovieApplication : Application(), Configuration.Provider {
+
+    @Inject
+    lateinit var secureDataStore: SecureDataStore
 
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
@@ -29,8 +37,15 @@ class MovieApplication : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
-        Log.d("PopularMoviesWorker", "Custom WorkManager config loaded ✅")
+        Log.d("PopularMoviesWorker", "Custom WorkManager config loaded")
         schedulePopularMoviesUpdate(this)
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val stored = secureDataStore.apiKey.first()
+            if (stored == null) {
+                secureDataStore.saveApiKey(BuildConfig.API_KEY)
+            }
+        }
     }
 
     fun schedulePopularMoviesUpdate(context: Context) {
